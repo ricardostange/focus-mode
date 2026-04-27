@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import type { Video } from './types';
 import { Header } from './components/Header';
 import { VideoGrid } from './components/VideoGrid';
@@ -14,12 +15,13 @@ const DEFAULT_VIDEO_IDS = [
 ];
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [videos, setVideos] = useState<Video[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const userVideos = JSON.parse(saved);
-        // Ensure we don't load videos that are now in the default list
         return userVideos.filter((v: Video) => !DEFAULT_VIDEO_IDS.includes(v.id));
       } catch (e) {
         console.error("Failed to parse saved videos", e);
@@ -28,17 +30,8 @@ function App() {
     return [];
   });
 
-  const [selectedVideoId, setSelectedVideoId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Derived state
-  const currentScreen = selectedVideoId ? 'video' : 'home';
-  const selectedVideo = useMemo(() => 
-    videos.find(v => v.id === selectedVideoId), 
-    [videos, selectedVideoId]
-  );
-  const mainDescription = selectedVideo?.title || 'Loading...';
 
   const fetchMetadata = useCallback(async (id: string): Promise<Video | null> => {
     try {
@@ -61,7 +54,6 @@ function App() {
       const results = await Promise.all(DEFAULT_VIDEO_IDS.map(id => fetchMetadata(id)));
       const filteredDefaults = results.filter((v): v is Video => v !== null);
       setVideos(prev => {
-        // Filter out any user-added videos that are now defaults to avoid duplicates
         const userVids = prev.filter(v => !DEFAULT_VIDEO_IDS.includes(v.id));
         return [...filteredDefaults, ...userVids];
       });
@@ -69,32 +61,19 @@ function App() {
     loadDefaults();
   }, [fetchMetadata]);
 
-  // Handle URL navigation
+  // Handle fetching metadata for direct links
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path.includes('/video/')) {
-        const id = path.split('/video/')[1];
-        setSelectedVideoId(id);
-        
-        // If metadata hasn't loaded yet and not in current list, try to fetch it
-        if (!videos.some(v => v.id === id)) {
-          fetchMetadata(id).then(v => {
-            if (v) setVideos(prev => [...prev, v]);
-          });
-        }
-      } else {
-        setSelectedVideoId('');
-      }
-    };
+    const pathParts = location.pathname.split('/');
+    const id = pathParts[pathParts.indexOf('video') + 1];
+    
+    if (id && !videos.some(v => v.id === id)) {
+      fetchMetadata(id).then(v => {
+        if (v) setVideos(prev => [...prev, v]);
+      });
+    }
+  }, [location.pathname, videos, fetchMetadata]);
 
-    window.addEventListener('popstate', handlePopState);
-    handlePopState();
-
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [videos, fetchMetadata]);
-
-  // Persist only user-added videos (those not in the default list)
+  // Persist only user-added videos
   useEffect(() => {
     const userOnly = videos.filter(v => !DEFAULT_VIDEO_IDS.includes(v.id));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userOnly));
@@ -105,16 +84,6 @@ function App() {
     const term = searchTerm.toLowerCase();
     return videos.filter(video => video.title.toLowerCase().includes(term));
   }, [videos, searchTerm]);
-
-  const displayVideoScreen = (video: Video) => {
-    setSelectedVideoId(video.id);
-    window.history.pushState({}, '', `/video/${video.id}`);
-  };
-
-  const displayHomeScreen = () => {
-    setSelectedVideoId('');
-    window.history.pushState({}, '', '/');
-  };
 
   const handleAddVideo = async (videoId: string) => {
     if (videos.some(v => v.id === videoId)) {
@@ -130,21 +99,22 @@ function App() {
     }
   };
 
+  const isHome = location.pathname === '/';
 
   return (
     <div className="app-container">
       <Header 
-        showSearch={currentScreen === 'home'}
+        showSearch={isHome}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onLogoClick={displayHomeScreen}
+        onLogoClick={() => navigate('/')}
         onAddVideoClick={() => setIsModalOpen(true)}
       />
 
       <main className="main">
-        {currentScreen === 'home' ? (
-          <>
-            {videos.length === 0 ? (
+        <Routes>
+          <Route path="/" element={
+            videos.length === 0 ? (
               <div style={{ textAlign: 'center', marginTop: '100px', color: 'var(--text-secondary)' }}>
                 <h2>No videos yet</h2>
                 <p>Click "Add Video" to start building your library.</p>
@@ -152,16 +122,12 @@ function App() {
             ) : (
               <VideoGrid 
                 videos={filteredVideos} 
-                onVideoClick={displayVideoScreen} 
+                onVideoClick={(v) => navigate(`/video/${v.id}`)} 
               />
-            )}
-          </>
-        ) : (
-          <VideoPlayer 
-            videoId={selectedVideoId} 
-            title={mainDescription} 
-          />
-        )}
+            )
+          } />
+          <Route path="/video/:videoId" element={<VideoPlayerWrapper videos={videos} />} />
+        </Routes>
       </main>
 
       <AddVideoModal 
@@ -173,5 +139,10 @@ function App() {
   );
 }
 
+function VideoPlayerWrapper({ videos }: { videos: Video[] }) {
+  const { videoId } = useParams();
+  const video = videos.find(v => v.id === videoId);
+  return <VideoPlayer videoId={videoId || ''} title={video?.title || 'Loading...'} />;
+}
 
 export default App;
