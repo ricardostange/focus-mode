@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { Video } from './types';
+import { Header } from './components/Header';
+import { VideoGrid } from './components/VideoGrid';
+import { VideoPlayer } from './components/VideoPlayer';
 import './App.css';
-
-interface Video {
-  id: string;
-  title: string;
-  thumbnailUrl: string;
-}
 
 const VIDEO_IDS = [
   'jNQXAC9IVRw', 'dQw4w9WgXcQ', '9bZkp7q19f0', 'kJQP7kiw5Fk', 'y6120QOlsfU',
@@ -23,7 +21,7 @@ const VIDEO_IDS = [
   'M-697Lg87h4', 'fC7oUOUEkQg', '6Yp8_2nJtjg', 'v2AC41dglnM', 'C_S5cXbXe-4',
   'q6f-LLM1H6U', 'W6NZfCO5SIk', 'T-YvjNlS7Q4', 'kffacxfA7G4', 'MwpMEbgC7DA',
   'q7vG-88SShI', 'fRh_vgS2dFE', 'oyEuk8j8imI', 'm6VojYshn_A', '3-S8Z9S-E8M8',
-  'X8zLJlU_-60', '79Dixm-y_8w', 'pS7m8-R8rM8', 't9RR9N2k9I8', 'ZgeS6_I6XvU',
+  'mlukRm6ywnA', '79Dixm-y_8w', 'pS7m8-R8rM8', 't9RR9N2k9I8', 'ZgeS6_I6XvU',
   'gOMhN-nkf4Q', 'yKNxeF4K9tY', 'tH2w6Oxx0kQ', 'X66Z-8p48p8', 'hY7m5jjJ9mM',
   '0G38353457A', 'p_vYI-p_30I', '60ItHLz5WEA', 'C0DPdy98e4c', 'fJ9rUzIMcZQ',
   'N6p8_2nJtjg', 'P66Yp8_2nJtjg', '2S24-y0IjI', '9m6wW_V5V-k', 'M97vGuU7m6w',
@@ -72,7 +70,7 @@ function App() {
     };
 
     window.addEventListener('popstate', handlePopState);
-    handlePopState(); // Initial check
+    handlePopState();
 
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -98,51 +96,24 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="top-bar">
-        <div className="header-content">
-          <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" 
-            id="home-logo" 
-            alt="Logo" 
-            onClick={displayHomeScreen}
-          />
-          <div className="search-container" style={{ visibility: currentScreen === 'home' ? 'visible' : 'hidden' }}>
-            <input 
-              type="text" 
-              placeholder="Search videos..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-      </header>
+      <Header 
+        showSearch={currentScreen === 'home'}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onLogoClick={displayHomeScreen}
+      />
 
       <main className="main">
         {currentScreen === 'home' ? (
-          <div className="video-grid">
-            {filteredVideos.map((video) => (
-              <div key={video.id} className="video-container" onClick={() => displayVideoScreen(video)}>
-                <img src={video.thumbnailUrl} alt={video.title} />
-                <div className="video-info">
-                  <p>{video.title}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <VideoGrid 
+            videos={filteredVideos} 
+            onVideoClick={displayVideoScreen} 
+          />
         ) : (
-          <div className="video-expanded">
-            <div className="video-player-wrapper">
-              <iframe 
-                src={`https://www.youtube.com/embed/${selectedVideoId}`}
-                title="YouTube video player" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
-                allowFullScreen
-              ></iframe>
-            </div>
-            <h1 id="video-description-title">{mainDescription}</h1>
-          </div>
+          <VideoPlayer 
+            videoId={selectedVideoId} 
+            title={mainDescription} 
+          />
         )}
       </main>
     </div>
