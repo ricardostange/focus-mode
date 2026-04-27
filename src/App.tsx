@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, useParams, useLocation } from 'react-router-dom';
 import type { Video } from './types';
 import { Header } from './components/Header';
 import { VideoGrid } from './components/VideoGrid';
@@ -15,7 +15,6 @@ const DEFAULT_VIDEO_IDS = [
 ];
 
 function App() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [videos, setVideos] = useState<Video[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
