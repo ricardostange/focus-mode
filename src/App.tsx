@@ -7,14 +7,20 @@ import { AddVideoModal } from './components/AddVideoModal';
 import './App.css';
 
 const STORAGE_KEY = 'simplista_user_videos';
+const DEFAULT_VIDEO_IDS = [
+  'dQw4w9WgXcQ',
+  '9bZkp7q19f0',
+  'jNQXAC9IVRw'
+];
 
 function App() {
-  // Use a function initializer to load from localStorage synchronously before the first render
   const [videos, setVideos] = useState<Video[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const userVideos = JSON.parse(saved);
+        // Ensure we don't load videos that are now in the default list
+        return userVideos.filter((v: Video) => !DEFAULT_VIDEO_IDS.includes(v.id));
       } catch (e) {
         console.error("Failed to parse saved videos", e);
       }
@@ -43,6 +49,20 @@ function App() {
     }
   }, []);
 
+  // Fetch metadata for default videos on mount and merge
+  useEffect(() => {
+    const loadDefaults = async () => {
+      const results = await Promise.all(DEFAULT_VIDEO_IDS.map(id => fetchMetadata(id)));
+      const filteredDefaults = results.filter((v): v is Video => v !== null);
+      setVideos(prev => {
+        // Filter out any user-added videos that are now defaults to avoid duplicates
+        const userVids = prev.filter(v => !DEFAULT_VIDEO_IDS.includes(v.id));
+        return [...filteredDefaults, ...userVids];
+      });
+    };
+    loadDefaults();
+  }, [fetchMetadata]);
+
   // Handle URL navigation
   useEffect(() => {
     const handlePopState = () => {
@@ -51,9 +71,18 @@ function App() {
         const id = path.split('/video/')[1];
         setSelectedVideoId(id);
         setCurrentScreen('video');
-        // Find title for selected video if possible
-        const video = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').find((v: Video) => v.id === id);
-        if (video) setMainDescription(video.title);
+        
+        // Find title in current videos list
+        const video = videos.find(v => v.id === id);
+        if (video) {
+          setMainDescription(video.title);
+        } else {
+          // If metadata hasn't loaded yet, try to fetch it
+          setMainDescription('Loading...');
+          fetchMetadata(id).then(v => {
+            if (v) setMainDescription(v.title);
+          });
+        }
       } else {
         setCurrentScreen('home');
       }
@@ -63,11 +92,12 @@ function App() {
     handlePopState();
 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [videos, fetchMetadata]);
 
-  // Persist to LocalStorage whenever videos change
+  // Persist only user-added videos (those not in the default list)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+    const userOnly = videos.filter(v => !DEFAULT_VIDEO_IDS.includes(v.id));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userOnly));
   }, [videos]);
 
   const filteredVideos = useMemo(() => {
@@ -102,6 +132,7 @@ function App() {
       alert('Could not find video metadata. Please check the ID.');
     }
   };
+
 
   return (
     <div className="app-container">
@@ -144,5 +175,6 @@ function App() {
     </div>
   );
 }
+
 
 export default App;
