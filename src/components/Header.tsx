@@ -18,8 +18,8 @@ export function Header({ showSearch, searchTerm, onSearchChange, onLogoClick, on
   return (
     <header className="top-bar">
       <div className="header-content">
-        <a href="/" onClick={handleLogoClick} className="logo-text">
-          Focus Mode
+        <a href="/" onClick={handleLogoClick}>
+          <img src="favicon.svg" alt="Focus Mode" className="logo-img" />
         </a>
         <div className="search-container" style={{ visibility: showSearch ? 'visible' : 'hidden' }}>
           <input 

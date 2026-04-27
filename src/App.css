@@ -59,20 +59,22 @@ body {
     gap: 40px;
 }
 
-.logo-text {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    text-decoration: none;
-    letter-spacing: -0.04em;
+.logo-img {
+    height: 32px;
+    width: auto;
     cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
-    white-space: nowrap;
-    transition: color 0.2s;
+    display: block;
 }
 
-.logo-text:hover {
-    color: var(--accent);
+.logo-img:hover {
+    transform: scale(1.1) rotate(-5deg);
+    filter: drop-shadow(0 0 8px var(--accent));
+}
+
+.logo-img:active {
+    transform: scale(0.95);
 }
 
 .search-container {
