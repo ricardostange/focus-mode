@@ -1,73 +1,33 @@
-# React + TypeScript + Vite
+# Focus Mode - Chill Video Player
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Simplista is a minimalist, distraction-free video player designed for those who need a clean environment for studying, programming, or deep focus. It allows you to build a personal library of long-duration music, ambient videos, or lo-fi streams without the clutter and recommendations of the standard YouTube interface.
 
-Currently, two official plugins are available:
+## 🎧 The Concept
+Standard video platforms are designed to keep you clicking. Simplista is designed to help you stay focused. 
+- **No Recommendations:** Only the videos you explicitly add.
+- **Deep Focus UI:** A dark, minimalist interface that puts the music/video first.
+- **Cinema Mode:** A dedicated expanded view designed to stay in the background or fill your screen.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Key Features
+- **Personal Library:** Add any YouTube video by simply entering its ID.
+- **Persistent Storage:** Your library is saved to your browser's `localStorage`, so your collection stays with you even after a refresh or restart.
+- **Smart Metadata:** Automatically fetches video titles and high-quality thumbnails using the YouTube oEmbed API.
+- **Cinema Fullscreen:** Double-click the video title or player area to toggle a true fullscreen focus mode.
+- **Instant Search:** Quickly filter through your collection to find the right vibe for your current task.
 
-## React Compiler
+## 🚀 How to Use
+1. **Add a Video:** Click the blue "Add Video" button in the top right.
+2. **Enter ID:** Paste a YouTube Video ID (the part after `v=` in a URL, e.g., `jfKfPfyJRdk`).
+3. **Focus:** Click a video card to enter the player view.
+4. **Fullscreen:** Double-click the video title to expand the player to fill your entire screen.
+5. **Navigate:** Click the YouTube logo at any time to return to your library.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Technical Setup
+Built with a modular React + TypeScript architecture:
+- **React 19**
+- **TypeScript** (Strict type safety)
+- **Vanilla CSS** (Custom themed design)
+- **Vite** (Lightning-fast development)
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+*Stay chill, stay focused.*
