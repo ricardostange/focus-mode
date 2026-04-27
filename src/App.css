@@ -215,23 +215,25 @@ iframe {
 
 /* Add Video Button */
 .add-video-btn {
-    background: #3ea6ff;
-    color: #0f0f0f;
+    background: transparent;
+    color: var(--text-primary);
     border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 8px;
+    border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    transition: transform 0.2s, background 0.2s;
-    white-space: nowrap;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
 .add-video-btn:hover {
-    transform: scale(1.05);
-    background: #65b8ff;
+    color: var(--accent);
+    transform: scale(1.2);
+}
+
+.add-video-btn:active {
+    transform: scale(0.9);
 }
 
 /* Modal */

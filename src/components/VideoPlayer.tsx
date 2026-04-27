@@ -9,7 +9,7 @@ export function VideoPlayer({ videoId, title }: VideoPlayerProps) {
       <div className="video-player-wrapper">
         <iframe 
           src={`https://www.youtube.com/embed/${videoId}`}
-          title="YouTube video player" 
+          title="Video Player" 
           frameBorder="0" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
           referrerPolicy="strict-origin-when-cross-origin" 
