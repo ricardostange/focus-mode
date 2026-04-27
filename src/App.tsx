@@ -28,11 +28,17 @@ function App() {
     return [];
   });
 
-  const [currentScreen, setCurrentScreen] = useState<'home' | 'video'>('home');
   const [selectedVideoId, setSelectedVideoId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [mainDescription, setMainDescription] = useState('Default Description');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Derived state
+  const currentScreen = selectedVideoId ? 'video' : 'home';
+  const selectedVideo = useMemo(() => 
+    videos.find(v => v.id === selectedVideoId), 
+    [videos, selectedVideoId]
+  );
+  const mainDescription = selectedVideo?.title || 'Loading...';
 
   const fetchMetadata = useCallback(async (id: string): Promise<Video | null> => {
     try {
@@ -70,21 +76,15 @@ function App() {
       if (path.includes('/video/')) {
         const id = path.split('/video/')[1];
         setSelectedVideoId(id);
-        setCurrentScreen('video');
         
-        // Find title in current videos list
-        const video = videos.find(v => v.id === id);
-        if (video) {
-          setMainDescription(video.title);
-        } else {
-          // If metadata hasn't loaded yet, try to fetch it
-          setMainDescription('Loading...');
+        // If metadata hasn't loaded yet and not in current list, try to fetch it
+        if (!videos.some(v => v.id === id)) {
           fetchMetadata(id).then(v => {
-            if (v) setMainDescription(v.title);
+            if (v) setVideos(prev => [...prev, v]);
           });
         }
       } else {
-        setCurrentScreen('home');
+        setSelectedVideoId('');
       }
     };
 
@@ -107,15 +107,12 @@ function App() {
   }, [videos, searchTerm]);
 
   const displayVideoScreen = (video: Video) => {
-    setCurrentScreen('video');
     setSelectedVideoId(video.id);
-    setMainDescription(video.title);
     window.history.pushState({}, '', `/video/${video.id}`);
   };
 
   const displayHomeScreen = () => {
-    setCurrentScreen('home');
-    setMainDescription('Default Description');
+    setSelectedVideoId('');
     window.history.pushState({}, '', '/');
   };
 
