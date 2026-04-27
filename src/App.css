@@ -59,16 +59,20 @@ body {
     gap: 40px;
 }
 
-#home-logo {
-    width: 100px;
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.04em;
     cursor: pointer;
-    transition: transform 0.2s;
-    filter: invert(1) hue-rotate(180deg);
     user-select: none;
+    white-space: nowrap;
+    transition: color 0.2s;
 }
 
-#home-logo:hover {
-    transform: scale(1.1);
+.logo-text:hover {
+    color: var(--accent);
 }
 
 .search-container {
