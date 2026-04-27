@@ -58,7 +58,7 @@ function App() {
 
     fetchVideosMetadata();
 
-    const handlePopState = () => {
+    const handleRouteChange = () => {
       const path = window.location.pathname;
       if (path.includes('/video/')) {
         const id = path.split('/video/')[1];
@@ -69,10 +69,10 @@ function App() {
       }
     };
 
-    window.addEventListener('popstate', handlePopState);
-    handlePopState();
+    window.addEventListener('popstate', handleRouteChange);
+    handleRouteChange();
 
-    return () => window.removeEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
 
   const filteredVideos = useMemo(() => {
