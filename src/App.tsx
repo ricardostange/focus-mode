@@ -6,31 +6,22 @@ import { VideoPlayer } from './components/VideoPlayer';
 import { AddVideoModal } from './components/AddVideoModal';
 import './App.css';
 
-const INITIAL_VIDEO_IDS = [
-  'jNQXAC9IVRw', 'dQw4w9WgXcQ', '9bZkp7q19f0', 'kJQP7kiw5Fk', 'y6120QOlsfU',
-  'jgwWqElkyks', 'V-_O7nl0Ii0', 'L_jWHffIx5E', 'CevxZvSJLk8', 'fHI8X4OXWnU',
-  'hT_nvWreIhg', 'JGwWqElkyks', 'l482T0yNkeo', 'M7lc1UVf-VE', 'RgKAFK5djSk',
-  'YQHsXMglC9A', '09R8_2nJtjg', 'kXYiU_JCYtU', '9WzIACv_mxs', 'SbYAnF7vS_M',
-  'Zi_XLOBDo_Y', 'papuvlVq_3E', 'rYEDA3JcQqw', '0e3t18rrjOA', 'XqZsoesa55w',
-  '9H4E5SjYg_w', 'qMtcWqzSK8I', 'ktvTqknDobU', 'LPUU807_3pE', 'feSVtC1BSeQ',
-  'fUAnuLzK_m8', 'cMTAUr5Kw6I', 'yCsgoLc_fzI', 'aqf0L2mYVqY', 'U7VStT_O_mY',
-  'KneEzG6uDdU', 'JmNfUv-9z6c', 'X8zLJlU_-60', '8XlsicZ6t-0', 'HEfHFsfGXjs',
-  'aircAruvnKk', 'OkmNXy7er84', 'wTJI_WuZSwE', 'oRdzL260yVo', 'xKO097vGuU7',
-  'eEaZvEZye8', 'hHW1oY26kxQ', '7_VTH52TGOQ', '4bHUsy74Fss', 'KIv2fA7rP9M',
-  'kSPrZ4GfXmU', 'uY6Yn7A-Y3k', 'N9qYF9DZPdw', '6_b7RDuLwcI', '9m6wW_V5V-k',
-  'Xv-GfT_GzB8', 'Pj-D0U29Y_Q', 'tPEE9uB17yU', 'V6-0kYhg6No', '3tmd-ClpJxA',
-  'M-697Lg87h4', 'fC7oUOUEkQg', '6Yp8_2nJtjg', 'v2AC41dglnM', 'C_S5cXbXe-4',
-  'q6f-LLM1H6U', 'W6NZfCO5SIk', 'T-YvjNlS7Q4', 'kffacxfA7G4', 'MwpMEbgC7DA',
-  'q7vG-88SShI', 'fRh_vgS2dFE', 'oyEuk8j8imI', 'm6VojYshn_A', '3-S8Z9S-E8M8',
-  'X8zLJlU_-60', '79Dixm-y_8w', 'pS7m8-R8rM8', 't9RR9N2k9I8', 'ZgeS6_I6XvU',
-  'gOMhN-nkf4Q', 'yKNxeF4K9tY', 'tH2w6Oxx0kQ', 'X66Z-8p48p8', 'hY7m5jjJ9mM',
-  '0G38353457A', 'p_vYI-p_30I', '60ItHLz5WEA', 'C0DPdy98e4c', 'fJ9rUzIMcZQ',
-  'N6p8_2nJtjg', 'P66Yp8_2nJtjg', '2S24-y0IjI', '9m6wW_V5V-k', 'M97vGuU7m6w',
-  '7VTH52TGOQ0', 'KIv2fA7rP9M', 't9RR9N2k9I8', 'V6-0kYhg6No', 'SbYAnF7vS_M'
-];
+const STORAGE_KEY = 'simplista_user_videos';
 
 function App() {
-  const [videos, setVideos] = useState<Video[]>([]);
+  // Use a function initializer to load from localStorage synchronously before the first render
+  const [videos, setVideos] = useState<Video[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse saved videos", e);
+      }
+    }
+    return [];
+  });
+
   const [currentScreen, setCurrentScreen] = useState<'home' | 'video'>('home');
   const [selectedVideoId, setSelectedVideoId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,21 +43,17 @@ function App() {
     }
   }, []);
 
+  // Handle URL navigation
   useEffect(() => {
-    const loadInitialVideos = async () => {
-      const videoPromises = INITIAL_VIDEO_IDS.map(id => fetchMetadata(id));
-      const results = await Promise.all(videoPromises);
-      setVideos(results.filter((v): v is Video => v !== null));
-    };
-
-    loadInitialVideos();
-
     const handlePopState = () => {
       const path = window.location.pathname;
       if (path.includes('/video/')) {
         const id = path.split('/video/')[1];
         setSelectedVideoId(id);
         setCurrentScreen('video');
+        // Find title for selected video if possible
+        const video = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').find((v: Video) => v.id === id);
+        if (video) setMainDescription(video.title);
       } else {
         setCurrentScreen('home');
       }
@@ -76,7 +63,12 @@ function App() {
     handlePopState();
 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [fetchMetadata]);
+  }, []);
+
+  // Persist to LocalStorage whenever videos change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+  }, [videos]);
 
   const filteredVideos = useMemo(() => {
     if (!searchTerm.trim()) return videos;
@@ -98,7 +90,6 @@ function App() {
   };
 
   const handleAddVideo = async (videoId: string) => {
-    // Check if video already exists in the list to avoid duplicates
     if (videos.some(v => v.id === videoId)) {
       alert('This video is already in your list!');
       return;
@@ -124,10 +115,19 @@ function App() {
 
       <main className="main">
         {currentScreen === 'home' ? (
-          <VideoGrid 
-            videos={filteredVideos} 
-            onVideoClick={displayVideoScreen} 
-          />
+          <>
+            {videos.length === 0 ? (
+              <div style={{ textAlign: 'center', marginTop: '100px', color: 'var(--text-secondary)' }}>
+                <h2>No videos yet</h2>
+                <p>Click "Add Video" to start building your library.</p>
+              </div>
+            ) : (
+              <VideoGrid 
+                videos={filteredVideos} 
+                onVideoClick={displayVideoScreen} 
+              />
+            )}
+          </>
         ) : (
           <VideoPlayer 
             videoId={selectedVideoId} 
