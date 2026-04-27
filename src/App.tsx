@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Video } from './types';
 import { Header } from './components/Header';
 import { VideoGrid } from './components/VideoGrid';
 import { VideoPlayer } from './components/VideoPlayer';
+import { AddVideoModal } from './components/AddVideoModal';
 import './App.css';
 
-const VIDEO_IDS = [
+const INITIAL_VIDEO_IDS = [
   'jNQXAC9IVRw', 'dQw4w9WgXcQ', '9bZkp7q19f0', 'kJQP7kiw5Fk', 'y6120QOlsfU',
   'jgwWqElkyks', 'V-_O7nl0Ii0', 'L_jWHffIx5E', 'CevxZvSJLk8', 'fHI8X4OXWnU',
   'hT_nvWreIhg', 'JGwWqElkyks', 'l482T0yNkeo', 'M7lc1UVf-VE', 'RgKAFK5djSk',
@@ -21,7 +22,7 @@ const VIDEO_IDS = [
   'M-697Lg87h4', 'fC7oUOUEkQg', '6Yp8_2nJtjg', 'v2AC41dglnM', 'C_S5cXbXe-4',
   'q6f-LLM1H6U', 'W6NZfCO5SIk', 'T-YvjNlS7Q4', 'kffacxfA7G4', 'MwpMEbgC7DA',
   'q7vG-88SShI', 'fRh_vgS2dFE', 'oyEuk8j8imI', 'm6VojYshn_A', '3-S8Z9S-E8M8',
-  'mlukRm6ywnA', '79Dixm-y_8w', 'pS7m8-R8rM8', 't9RR9N2k9I8', 'ZgeS6_I6XvU',
+  'X8zLJlU_-60', '79Dixm-y_8w', 'pS7m8-R8rM8', 't9RR9N2k9I8', 'ZgeS6_I6XvU',
   'gOMhN-nkf4Q', 'yKNxeF4K9tY', 'tH2w6Oxx0kQ', 'X66Z-8p48p8', 'hY7m5jjJ9mM',
   '0G38353457A', 'p_vYI-p_30I', '60ItHLz5WEA', 'C0DPdy98e4c', 'fJ9rUzIMcZQ',
   'N6p8_2nJtjg', 'P66Yp8_2nJtjg', '2S24-y0IjI', '9m6wW_V5V-k', 'M97vGuU7m6w',
@@ -34,31 +35,33 @@ function App() {
   const [selectedVideoId, setSelectedVideoId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [mainDescription, setMainDescription] = useState('Default Description');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchMetadata = useCallback(async (id: string): Promise<Video | null> => {
+    try {
+      const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
+      const data = await response.json();
+      return {
+        id,
+        title: data.title || 'No title found',
+        thumbnailUrl: `https://img.youtube.com/vi/${id}/mqdefault.jpg`
+      };
+    } catch (error) {
+      console.error(`Error fetching metadata for ${id}:`, error);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchVideosMetadata = async () => {
-      const videoPromises = VIDEO_IDS.map(async (id) => {
-        try {
-          const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
-          const data = await response.json();
-          return {
-            id,
-            title: data.title || 'No title found',
-            thumbnailUrl: `https://img.youtube.com/vi/${id}/mqdefault.jpg`
-          };
-        } catch (error) {
-          console.error(`Error fetching metadata for ${id}:`, error);
-          return null;
-        }
-      });
-
+    const loadInitialVideos = async () => {
+      const videoPromises = INITIAL_VIDEO_IDS.map(id => fetchMetadata(id));
       const results = await Promise.all(videoPromises);
       setVideos(results.filter((v): v is Video => v !== null));
     };
 
-    fetchVideosMetadata();
+    loadInitialVideos();
 
-    const handleRouteChange = () => {
+    const handlePopState = () => {
       const path = window.location.pathname;
       if (path.includes('/video/')) {
         const id = path.split('/video/')[1];
@@ -69,11 +72,11 @@ function App() {
       }
     };
 
-    window.addEventListener('popstate', handleRouteChange);
-    handleRouteChange();
+    window.addEventListener('popstate', handlePopState);
+    handlePopState();
 
-    return () => window.removeEventListener('popstate', handleRouteChange);
-  }, []);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [fetchMetadata]);
 
   const filteredVideos = useMemo(() => {
     if (!searchTerm.trim()) return videos;
@@ -94,6 +97,21 @@ function App() {
     window.history.pushState({}, '', '/');
   };
 
+  const handleAddVideo = async (videoId: string) => {
+    // Check if video already exists in the list to avoid duplicates
+    if (videos.some(v => v.id === videoId)) {
+      alert('This video is already in your list!');
+      return;
+    }
+
+    const newVideo = await fetchMetadata(videoId);
+    if (newVideo) {
+      setVideos(prev => [newVideo, ...prev]);
+    } else {
+      alert('Could not find video metadata. Please check the ID.');
+    }
+  };
+
   return (
     <div className="app-container">
       <Header 
@@ -101,6 +119,7 @@ function App() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onLogoClick={displayHomeScreen}
+        onAddVideoClick={() => setIsModalOpen(true)}
       />
 
       <main className="main">
@@ -116,6 +135,12 @@ function App() {
           />
         )}
       </main>
+
+      <AddVideoModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onAdd={handleAddVideo}
+      />
     </div>
   );
 }
