@@ -61,18 +61,6 @@ function App() {
     loadDefaults();
   }, [fetchMetadata]);
 
-  // Handle fetching metadata for direct links
-  useEffect(() => {
-    const pathParts = location.pathname.split('/');
-    const id = pathParts[pathParts.indexOf('video') + 1];
-    
-    if (id && !videos.some(v => v.id === id)) {
-      fetchMetadata(id).then(v => {
-        if (v) setVideos(prev => [...prev, v]);
-      });
-    }
-  }, [location.pathname, videos, fetchMetadata]);
-
   // Persist only user-added videos
   useEffect(() => {
     const userOnly = videos.filter(v => !DEFAULT_VIDEO_IDS.includes(v.id));
@@ -107,7 +95,6 @@ function App() {
         showSearch={isHome}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onLogoClick={() => navigate('/')}
         onAddVideoClick={() => setIsModalOpen(true)}
       />
 
@@ -122,11 +109,22 @@ function App() {
             ) : (
               <VideoGrid 
                 videos={filteredVideos} 
-                onVideoClick={(v) => navigate(`/video/${v.id}`)} 
               />
             )
           } />
-          <Route path="/video/:videoId" element={<VideoPlayerWrapper videos={videos} />} />
+          <Route 
+            path="/video/:videoId" 
+            element={
+              <VideoPlayerWrapper 
+                videos={videos} 
+                onVideoMissing={(id) => {
+                  fetchMetadata(id).then(v => {
+                    if (v) setVideos(prev => [...prev, v]);
+                  });
+                }} 
+              />
+            } 
+          />
         </Routes>
       </main>
 
@@ -139,8 +137,21 @@ function App() {
   );
 }
 
-function VideoPlayerWrapper({ videos }: { videos: Video[] }) {
+function VideoPlayerWrapper({ 
+  videos, 
+  onVideoMissing 
+}: { 
+  videos: Video[], 
+  onVideoMissing: (id: string) => void 
+}) {
   const { videoId } = useParams();
+  
+  useEffect(() => {
+    if (videoId && !videos.some(v => v.id === videoId)) {
+      onVideoMissing(videoId);
+    }
+  }, [videoId, videos, onVideoMissing]);
+
   const video = videos.find(v => v.id === videoId);
   return <VideoPlayer videoId={videoId || ''} title={video?.title || 'Loading...'} />;
 }

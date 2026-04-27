@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://https://ricardostange.github.io/focus-mode",
+  "homepage": "https://ricardostange.github.io/focus-mode",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

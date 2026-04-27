@@ -1,26 +1,19 @@
+import { Link } from 'react-router-dom';
+
 interface HeaderProps {
   showSearch: boolean;
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  onLogoClick: () => void;
   onAddVideoClick: () => void;
 }
 
-export function Header({ showSearch, searchTerm, onSearchChange, onLogoClick, onAddVideoClick }: HeaderProps) {
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-      return;
-    }
-    e.preventDefault();
-    onLogoClick();
-  };
-
+export function Header({ showSearch, searchTerm, onSearchChange, onAddVideoClick }: HeaderProps) {
   return (
     <header className="top-bar">
       <div className="header-content">
-        <a href="/" onClick={handleLogoClick}>
+        <Link to="/">
           <img src="favicon.svg" alt="Focus Mode" className="logo-img" />
-        </a>
+        </Link>
         <div className="search-container" style={{ visibility: showSearch ? 'visible' : 'hidden' }}>
           <input 
             type="text" 
