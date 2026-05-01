@@ -8,6 +8,8 @@ export function VideoPlayer({ videoId, title }: VideoPlayerProps) {
     <div className="video-expanded">
       <div className="video-player-wrapper">
         <iframe 
+          width="256"
+          height="144"
           src={`https://www.youtube.com/embed/${videoId}`}
           title="Video Player" 
           frameBorder="0" 
