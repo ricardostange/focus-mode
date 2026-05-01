@@ -1,5 +1,7 @@
 # Focus Mode - Chill Video Player
 
+[**Live Demo**](https://ricardostange.github.io/focus-mode)
+
 Focus Mode is a minimalist, distraction-free video player designed for those who need a clean environment for studying, programming, or deep focus. It allows you to build a personal library of long-duration music, ambient videos, or lo-fi streams without the clutter and recommendations of the standard YouTube interface.
 
 ## 🎧 The Concept
