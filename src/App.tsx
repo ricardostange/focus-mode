@@ -9,9 +9,8 @@ import './App.css';
 
 const STORAGE_KEY = 'simplista_user_videos';
 const DEFAULT_VIDEO_IDS = [
-  'dQw4w9WgXcQ',
-  '9bZkp7q19f0',
-  'jNQXAC9IVRw'
+  'YMEblRM4pGc',
+  'n61ULEU7CO0'
 ];
 
 function App() {
