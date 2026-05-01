@@ -39,7 +39,7 @@ function App() {
       return {
         id,
         title: data.title || 'No title found',
-        thumbnailUrl: `https://img.youtube.com/vi/${id}/mqdefault.jpg`
+        thumbnailUrl: `https://img.youtube.com/vi/${id}/hqdefault.jpg`
       };
     } catch (error) {
       console.error(`Error fetching metadata for ${id}:`, error);
